@@ -16,9 +16,11 @@ service TaskService {
   // Deletes multiple tasks with the given IDs
   rpc deleteTasksWithIds(StringArrayRequest) returns (Empty);
   // Creates a new task with the given text and optional images
-  rpc newTask(NewTaskRequest) returns (Empty);
+  rpc newTask(NewTaskRequest) returns (String);
   // Shows a task with the specified ID
   rpc showTaskWithId(StringRequest) returns (TaskResponse);
+  // Gets the messages for a task
+  rpc getTaskMessages(StringRequest) returns (TaskMessagesResponse);
   // Exports a task with the given ID to markdown
   rpc exportTaskWithId(StringRequest) returns (Empty);
   // Toggles the favorite status of a task
@@ -109,6 +111,19 @@ message ExecuteQuickWinRequest {
   Metadata metadata = 1;
   string command = 2;
   string title = 3;
+}
+
+// Response for task messages
+message TaskMessagesResponse {
+  repeated TaskMessage messages = 1;
+}
+
+// Individual task message
+message TaskMessage {
+  int64 ts = 1;
+  string type = 2;  // "user" or "assistant"
+  string content = 3;
+  string role = 4;  // "user" or "assistant"
 }
 
 // Results returned when deleting all task history

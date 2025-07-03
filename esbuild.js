@@ -5,7 +5,10 @@ const path = require("path")
 const production = process.argv.includes("--production")
 const watch = process.argv.includes("--watch")
 const standalone = process.argv.includes("--standalone")
-const destDir = standalone ? "dist-standalone" : "dist"
+const standaloneSimple = process.argv.includes("--standalone-simple")
+const cli = process.argv.includes("--cli")
+const configure = process.argv.includes("--configure")
+const destDir = standalone || standaloneSimple ? "dist-standalone" : "dist"
 
 /**
  * @type {import('esbuild').Plugin}
@@ -160,8 +163,46 @@ const standaloneConfig = {
 	external: ["vscode", "@grpc/reflection", "grpc-health-check"],
 }
 
+// CLI-specific configuration
+const cliConfig = {
+	...baseConfig,
+	entryPoints: ["src/cli/cli.ts"],
+	outfile: `${destDir}/cli/cli.js`,
+	external: ["vscode"],
+}
+
+// Configure-specific configuration
+const configureConfig = {
+	...baseConfig,
+	entryPoints: ["src/cli/configure.ts"],
+	outfile: `${destDir}/cli/configure.js`,
+	external: ["vscode"],
+}
+
+// Simplified standalone-specific configuration
+const standaloneSimpleConfig = {
+	...baseConfig,
+	entryPoints: ["src/standalone/standalone-simple.ts"],
+	outfile: `${destDir}/standalone-simple.js`,
+	// These gRPC protos need to load files from the module directory at runtime,
+	// so they cannot be bundled.
+	external: ["vscode", "@grpc/reflection", "grpc-health-check"],
+}
+
 async function main() {
-	const config = standalone ? standaloneConfig : extensionConfig
+	let config
+	if (configure) {
+		config = configureConfig
+	} else if (cli) {
+		config = cliConfig
+	} else if (standaloneSimple) {
+		config = standaloneSimpleConfig
+	} else if (standalone) {
+		config = standaloneConfig
+	} else {
+		config = extensionConfig
+	}
+
 	const extensionCtx = await esbuild.context(config)
 	if (watch) {
 		await extensionCtx.watch()
