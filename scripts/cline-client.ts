@@ -126,7 +126,7 @@ export class ClineGrpcClient {
 	private readonly callModelsUnary: (request: Record<string, unknown>) => Promise<any>
 	private readonly callSetWelcomeUnary: (request: Record<string, unknown>) => Promise<any>
 
-	constructor(address = process.env.CLINE_GRPC_ADDR ?? "127.0.0.1:7777") {
+	constructor(address = process.env.CLINE_GRPC_ADDR ?? "127.0.0.1:26040") {
 		this.address = address
 		const creds = credentials.createInsecure()
 
@@ -372,7 +372,7 @@ async function main(): Promise<void> {
 		return
 	}
 
-	console.log(`Connecting to Cline at ${process.env.CLINE_GRPC_ADDR ?? "127.0.0.1:7777"}`)
+	console.log(`Connecting to Cline at ${process.env.CLINE_GRPC_ADDR ?? "127.0.0.1:26040"}`)
 
 	try {
 		await runClineTextRequest(text, (chunk) => {
