@@ -367,7 +367,7 @@ async function main(): Promise<void> {
 
 	const text = process.argv.slice(2).join(" ").trim()
 	if (!text) {
-		console.error('Usage: node --loader ts-node/esm scripts/cline-client.ts "<request text>"')
+		console.error('Usage: npx tsx scripts/cline-client.ts "<request text>"')
 		process.exitCode = 1
 		return
 	}
