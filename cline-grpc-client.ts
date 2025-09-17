@@ -35,9 +35,17 @@ const COMMON_PROTO_PATH = path.join(PROTO_PATH, "cline", "common.proto")
 class ClineGrpcClient {
     private taskClient: any
     private isConnected: boolean = false
+    private initPromise: Promise<void>
 
     constructor() {
-        this.initializeClient()
+        this.initPromise = this.initializeClient()
+    }
+
+    /**
+     * Ensure the client is initialized before use
+     */
+    async ensureInitialized(): Promise<void> {
+        await this.initPromise
     }
 
     /**
@@ -67,6 +75,9 @@ class ClineGrpcClient {
                     grpc.credentials.createInsecure()
                 )
                 
+                // Test the connection by attempting to get total tasks size (lightweight call)
+                await this.testConnection()
+                
                 console.log(`✅ Connected to Cline TaskService at ${GRPC_SERVER_HOST}`)
                 this.isConnected = true
             } else {
@@ -83,11 +94,45 @@ class ClineGrpcClient {
     }
 
     /**
+     * Test the gRPC connection by making a lightweight call
+     */
+    private async testConnection(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                reject(new Error("Connection timeout - Cline server may not be running"))
+            }, 5000) // 5 second timeout
+
+            // Use a simple call to test connectivity
+            const testRequest = {
+                metadata: {
+                    request_id: this.generateRequestId(),
+                    timestamp: Date.now().toString()
+                }
+            }
+
+            this.taskClient.getTotalTasksSize(testRequest, (error: any, response: any) => {
+                clearTimeout(timeout)
+                if (error) {
+                    if (error.code === 14) { // grpc.status.UNAVAILABLE
+                        reject(new Error("Cline server is not running. Please start it with: npm run test:sca-server"))
+                    } else {
+                        reject(new Error(`Connection test failed: ${error.message}`))
+                    }
+                } else {
+                    resolve()
+                }
+            })
+        })
+    }
+
+    /**
      * Send a text request to Cline via the TaskService
      * @param request The text request to send
      * @returns Promise<string> The task ID for tracking
      */
     async sendRequest(request: string): Promise<string> {
+        await this.ensureInitialized()
+        
         if (!this.isConnected) {
             throw new Error("gRPC client not connected to Cline server")
         }
@@ -112,6 +157,10 @@ class ClineGrpcClient {
                 this.taskClient.newTask(newTaskRequest, (error: any, response: any) => {
                     if (error) {
                         console.error("❌ Error calling Cline TaskService:", error)
+                        if (error.code === 14) { // grpc.status.UNAVAILABLE
+                            console.log("\n💡 The Cline server appears to be offline.")
+                            console.log("   Please start it with: npm run test:sca-server")
+                        }
                         reject(error)
                     } else {
                         console.log("✅ Task created successfully in Cline system")
@@ -139,6 +188,8 @@ class ClineGrpcClient {
      * @returns Promise with task history
      */
     async getTaskHistory(): Promise<any> {
+        await this.ensureInitialized()
+        
         if (!this.isConnected) {
             throw new Error("gRPC client not connected to Cline server")
         }
@@ -161,6 +212,10 @@ class ClineGrpcClient {
                 this.taskClient.getTaskHistory(request, (error: any, response: any) => {
                     if (error) {
                         console.error("❌ Error fetching task history:", error)
+                        if (error.code === 14) { // grpc.status.UNAVAILABLE
+                            console.log("\n💡 The Cline server appears to be offline.")
+                            console.log("   Please start it with: npm run test:sca-server")
+                        }
                         reject(error)
                     } else {
                         console.log("✅ Task history retrieved successfully")
@@ -179,6 +234,8 @@ class ClineGrpcClient {
      * Cancel the currently running task
      */
     async cancelTask(): Promise<void> {
+        await this.ensureInitialized()
+        
         if (!this.isConnected) {
             throw new Error("gRPC client not connected to Cline server")
         }
@@ -197,6 +254,10 @@ class ClineGrpcClient {
                 this.taskClient.cancelTask(request, (error: any, response: any) => {
                     if (error) {
                         console.error("❌ Error cancelling task:", error)
+                        if (error.code === 14) { // grpc.status.UNAVAILABLE
+                            console.log("\n💡 The Cline server appears to be offline.")
+                            console.log("   Please start it with: npm run test:sca-server")
+                        }
                         reject(error)
                     } else {
                         console.log("✅ Task cancelled successfully")
@@ -273,6 +334,9 @@ async function main() {
     try {
         const client = new ClineGrpcClient()
         
+        // Wait for initialization to complete
+        await client.ensureInitialized()
+        
         // Display server information
         const serverInfo = client.getServerInfo()
         console.log(`🚀 Cline gRPC Client initialized`)
@@ -308,10 +372,25 @@ async function main() {
         
     } catch (error) {
         console.error("❌ Failed to process request:", error)
-        console.log("\n🔧 Troubleshooting:")
-        console.log("  1. Make sure Cline gRPC server is running: npm run test:sca-server")
-        console.log("  2. Check that server is accessible at", GRPC_SERVER_HOST)
-        console.log("  3. Verify protobuf files are available in ./proto/")
+        
+        // Provide specific guidance based on the error
+        if (error.message && error.message.includes("ECONNREFUSED")) {
+            console.log("\n🔧 Connection refused - Cline server is not running")
+            console.log("   📋 Quick start guide:")
+            console.log("   1. Open a new terminal window")
+            console.log("   2. Run: npm run test:sca-server")
+            console.log("   3. Wait for 'Cline gRPC Server is running!' message")
+            console.log("   4. Keep that terminal open")
+            console.log("   5. In this terminal, retry your command")
+        } else if (error.message && error.message.includes("protobuf")) {
+            console.log("\n🔧 Protobuf files missing")
+            console.log("   Run: npm run protos")
+        } else {
+            console.log("\n🔧 Troubleshooting:")
+            console.log("  1. Make sure Cline gRPC server is running: npm run test:sca-server")
+            console.log("  2. Check that server is accessible at", GRPC_SERVER_HOST)
+            console.log("  3. Verify protobuf files are available in ./proto/")
+        }
         process.exit(1)
     }
 }

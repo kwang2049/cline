@@ -14,12 +14,17 @@ This repository includes multiple client scripts to interact with Cline in diffe
 **Connects to the actual Cline system** - This is the proper way to integrate with Cline.
 
 ```bash
-# Start Cline server first
+# STEP 1: Start Cline server (REQUIRED - keep this terminal open)
 npm run test:sca-server
 
-# Then use the gRPC client (in another terminal)
+# STEP 2: In a NEW terminal, use the gRPC client
 npm run grpc-client "Write a Python function to reverse a string"
 ```
+
+**Important Notes:**
+- ⚠️  **You MUST start the Cline server first** with `npm run test:sca-server`
+- 🖥️  **Keep the server terminal open** - don't close it while using the client
+- 🔄  **Use a separate terminal** for client commands
 
 **Features:**
 - ✅ Full Cline system integration 
@@ -61,19 +66,22 @@ npm run client "What is TypeScript?"
 ### gRPC Client (Cline System)
 
 ```bash
-# Start Cline server (required first step)
+# STEP 1: Start Cline server (keep this terminal open)
 npm run test:sca-server
 
-# Send requests to Cline system
+# STEP 2: Open a NEW terminal and send requests to Cline system
 npm run grpc-client "Create a React component for a todo list"
 npm run grpc-client "Debug this Python error: IndexError: list index out of range"
 
-# Get task history
-npm run grpc-client --history
-
-# Cancel current task
-npm run grpc-client --cancel
+# STEP 3: Additional commands (also in the NEW terminal)
+npm run grpc-client --history  # Get task history
+npm run grpc-client --cancel   # Cancel current task
 ```
+
+**⚠️ Common Issue:** If you get "ECONNREFUSED" error:
+1. Make sure you started the server in step 1
+2. Wait for "Cline gRPC Server is running!" message
+3. Use a different terminal for client commands
 
 ### Direct API Client
 
