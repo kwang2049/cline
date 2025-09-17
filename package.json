@@ -382,7 +382,8 @@
 		"grpc-client": "npx tsx cline-grpc-client.ts",
 		"test-client": "npx tsx test-client.ts",
 		"test-grpc-client": "npx tsx test-grpc-client.ts",
-		"demo-client": "npx tsx demo-client.ts"
+		"demo-client": "npx tsx demo-client.ts",
+		"demo-error-handling": "npx tsx demo-error-handling.ts"
 	},
 	"lint-staged": {
 		"*": [

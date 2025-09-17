@@ -85,10 +85,13 @@ class ClineGrpcClient {
             }
 
         } catch (error) {
-            console.error("❌ Failed to initialize gRPC client:", error)
-            console.log("\n💡 Make sure the Cline gRPC server is running:")
+            this.isConnected = false
+            console.log("⚠️  Connection test failed - Cline server appears to be offline")
+            console.log("💡 Make sure the Cline gRPC server is running:")
             console.log("   npm run test:sca-server")
             console.log("   (This starts the standalone Cline server)")
+            
+            // Re-throw the error to be handled by the caller
             throw error
         }
     }
@@ -335,7 +338,30 @@ async function main() {
         const client = new ClineGrpcClient()
         
         // Wait for initialization to complete
-        await client.ensureInitialized()
+        try {
+            await client.ensureInitialized()
+        } catch (initError) {
+            // Handle initialization errors more gracefully
+            if (initError.message && initError.message.includes("Cline server is not running")) {
+                console.log("\n🔧 Cline server is not running")
+                console.log("   📋 Quick start guide:")
+                console.log("   1. Open a new terminal window")
+                console.log("   2. Run: npm run test:sca-server")
+                console.log("   3. Wait for 'Cline gRPC Server is running!' message")
+                console.log("   4. Keep that terminal open")
+                console.log("   5. In this terminal, retry your command")
+                process.exit(1)
+            } else if (initError.message && initError.message.includes("protobuf")) {
+                console.log("\n🔧 Protobuf files missing")
+                console.log("   Run: npm run protos")
+                process.exit(1)
+            } else {
+                console.log("\n🔧 Failed to initialize Cline client")
+                console.log("   Error:", initError.message)
+                console.log("   Make sure the Cline server is running: npm run test:sca-server")
+                process.exit(1)
+            }
+        }
         
         // Display server information
         const serverInfo = client.getServerInfo()
@@ -371,25 +397,17 @@ async function main() {
         console.log("\n✅ Operation completed successfully!")
         
     } catch (error) {
-        console.error("❌ Failed to process request:", error)
+        console.error("❌ Failed to process request:", error.message || error)
         
-        // Provide specific guidance based on the error
+        // Provide guidance for common errors
         if (error.message && error.message.includes("ECONNREFUSED")) {
-            console.log("\n🔧 Connection refused - Cline server is not running")
-            console.log("   📋 Quick start guide:")
-            console.log("   1. Open a new terminal window")
-            console.log("   2. Run: npm run test:sca-server")
-            console.log("   3. Wait for 'Cline gRPC Server is running!' message")
-            console.log("   4. Keep that terminal open")
-            console.log("   5. In this terminal, retry your command")
-        } else if (error.message && error.message.includes("protobuf")) {
-            console.log("\n🔧 Protobuf files missing")
-            console.log("   Run: npm run protos")
+            console.log("\n🔧 Connection lost during operation")
+            console.log("   The Cline server may have stopped running")
+            console.log("   Please restart: npm run test:sca-server")
         } else {
             console.log("\n🔧 Troubleshooting:")
             console.log("  1. Make sure Cline gRPC server is running: npm run test:sca-server")
             console.log("  2. Check that server is accessible at", GRPC_SERVER_HOST)
-            console.log("  3. Verify protobuf files are available in ./proto/")
         }
         process.exit(1)
     }
