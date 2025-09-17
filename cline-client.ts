@@ -1,14 +1,22 @@
 #!/usr/bin/env npx tsx
 
 /**
- * Cline Client Script
+ * Cline Direct API Client Script (Alternative Implementation)
  * 
- * A client script to connect to Cline with a function taking a text request
- * as input and forwarding Cline's output back.
+ * NOTE: This is a direct LLM API client. For connecting to the full Cline system,
+ * use cline-grpc-client.ts instead.
+ * 
+ * This script connects directly to Google's Gemini API and simulates a Cline-like
+ * interface, but does NOT connect to the actual Cline system. It's useful for:
+ * - Quick testing of LLM capabilities
+ * - Standalone usage without running Cline server
+ * - Understanding the difference between direct API and Cline system integration
+ * 
+ * For full Cline integration, use: npx tsx cline-grpc-client.ts
  * 
  * Usage:
- *   npx tsx cline-client.ts "Your request here"
- *   npm run client "Your request here"
+ *   npx tsx cline-client.ts "Your request here"   # Direct LLM API
+ *   npm run client "Your request here"            # Direct LLM API
  * 
  * Environment:
  *   GOOGLE_API_KEY - API key for Gemini 2.0 Flash LLM
@@ -36,7 +44,8 @@ interface UsageChunk {
 type ResponseChunk = TextChunk | UsageChunk
 
 /**
- * Client class to interact with Cline using Gemini 2.0 Flash
+ * Direct API Client class (connects to Google Gemini directly, not Cline system)
+ * For connecting to actual Cline system, use ClineGrpcClient from cline-grpc-client.ts
  */
 class ClineClient {
     private client: GoogleGenAI
