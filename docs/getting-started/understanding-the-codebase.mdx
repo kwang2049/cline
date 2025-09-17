@@ -1,0 +1,284 @@
+---
+title: "Understanding the Cline Codebase"
+description: "A comprehensive guide for newcomers to understand Cline's architecture, structure, and how to get started contributing"
+---
+
+# Understanding the Cline Codebase
+
+Welcome to Cline! This guide will help you understand the codebase structure, key concepts, and provide a roadmap for getting up to speed as a developer or contributor.
+
+## What is Cline?
+
+Cline is an AI-powered coding assistant that can use your **CLI** a**N**d **E**ditor. It's a VS Code extension that leverages Claude Sonnet's agentic coding capabilities to help with complex software development tasks. Cline can create and edit files, execute terminal commands, use the browser, and even extend its own capabilities through the Model Context Protocol (MCP).
+
+## 🏗️ High-Level Architecture
+
+Cline follows a modular architecture with clear separation of concerns:
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   VS Code       │    │     Core API     │    │   Webview UI    │
+│   Extension     │◄──►│   (TypeScript)   │◄──►│   (React)       │
+│   Host          │    │                  │    │                 │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+         │                        │                       │
+         ▼                        ▼                       ▼
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   File System   │    │   AI Providers   │    │   Browser       │
+│   Terminal      │    │   (Claude, etc.) │    │   Automation    │
+│   Git, etc.     │    │                  │    │                 │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+```
+
+## 📁 Directory Structure Overview
+
+### Root Level
+```
+cline/
+├── src/                    # Main TypeScript source code
+├── webview-ui/            # React frontend components
+├── docs/                  # Documentation (Nextra-based)
+├── testing-platform/     # Test automation framework
+├── standalone/           # Standalone deployment configs
+├── locales/              # Internationalization files
+├── assets/               # Static assets and icons
+├── scripts/              # Build and utility scripts
+└── proto/                # Protocol buffer definitions
+```
+
+### Core Source (`src/`)
+```
+src/
+├── extension.ts          # VS Code extension entry point
+├── core/                 # Core business logic
+│   ├── api/             # AI provider integrations
+│   ├── controller/      # Main application controller
+│   ├── task/            # Task execution engine
+│   ├── context/         # Context management
+│   ├── webview/         # Webview bridge logic
+│   └── prompts/         # AI prompt templates
+├── hosts/               # Platform-specific implementations
+│   └── vscode/         # VS Code specific integrations
+├── services/           # Shared services (logging, auth, etc.)
+├── integrations/       # External tool integrations (git, etc.)
+├── shared/             # Shared types and utilities
+└── utils/              # Utility functions
+```
+
+### Frontend (`webview-ui/`)
+```
+webview-ui/
+├── src/
+│   ├── components/     # React components
+│   ├── context/        # React context providers
+│   ├── hooks/          # Custom React hooks
+│   ├── services/       # Frontend services
+│   └── utils/          # Frontend utilities
+├── .storybook/        # Storybook configuration
+└── package.json       # Frontend dependencies
+```
+
+## 🧠 Key Concepts & Components
+
+### 1. **Task Execution Engine** (`src/core/task/`)
+- **TaskState.ts**: Manages the state of ongoing tasks
+- **ToolExecutor.ts**: Executes various tools (file operations, terminal commands, etc.)
+- **tools/**: Individual tool implementations (file read/write, terminal, browser, etc.)
+
+The task engine is the heart of Cline's capability to perform multi-step operations while maintaining context and state.
+
+### 2. **Context Management** (`src/core/context/`)
+- **ContextManager.ts**: Manages conversation context and file history
+- Handles context window limitations and automatic context updates
+- Tracks file reads and modifications to optimize context usage
+
+### 3. **AI Provider Integration** (`src/core/api/`)
+- **providers/**: Support for multiple AI providers (Anthropic, OpenAI, Google, etc.)
+- **transform/**: Request/response transformation logic
+- **retry.ts**: Robust retry mechanisms for API calls
+
+### 4. **VS Code Integration** (`src/hosts/vscode/`)
+- **VscodeWebviewProvider.ts**: Manages the webview interface
+- **VscodeDiffViewProvider.ts**: Handles file diff visualizations
+- Platform-specific implementations for file system, terminal, and editor operations
+
+### 5. **Model Context Protocol (MCP)** (`src/core/controller/mcp/`)
+- Enables Cline to connect to external tools and services
+- Allows dynamic capability extension
+- Supports community-made and custom MCP servers
+
+### 6. **Webview UI** (`webview-ui/`)
+- React-based frontend with TypeScript
+- Real-time communication with the extension backend
+- Responsive design with Tailwind CSS
+- Component library with Storybook documentation
+
+## 🔄 Data Flow & Communication
+
+### Extension ↔ Webview Communication
+```
+VS Code Extension (TypeScript)
+         ↕ (postMessage/onDidReceiveMessage)
+    Webview (React)
+         ↕ (WebSocket-like patterns)
+    Core Controller
+         ↕
+    Task Execution Engine
+```
+
+### Key Communication Patterns:
+1. **UI Events**: User interactions in webview trigger events sent to extension
+2. **State Updates**: Extension sends state changes back to webview for UI updates
+3. **Tool Execution**: Tools execute in extension context with file system and terminal access
+4. **AI Communication**: Async communication with AI providers with progress updates
+
+## 🛠️ Development Tools & Standards
+
+### Build System
+- **TypeScript**: Strict typing throughout the codebase
+- **esbuild**: Fast bundling for both extension and webview
+- **Biome**: Linting and formatting
+- **Protocol Buffers**: Type-safe communication protocols
+
+### Testing Framework
+- **Mocha**: Unit tests
+- **VS Code Test Framework**: Integration tests
+- **Playwright**: End-to-end testing
+- **Storybook**: Component testing and documentation
+
+### Key Scripts (from `package.json`):
+```bash
+npm run compile        # Build the extension
+npm run watch         # Watch mode for development
+npm run test          # Run all tests
+npm run format:fix    # Auto-format code
+npm run dev:webview   # Start webview development server
+```
+
+## 📚 Important Files to Understand
+
+### Entry Points
+1. **`src/extension.ts`**: VS Code extension activation and command registration
+2. **`webview-ui/src/main.tsx`**: React application entry point
+3. **`src/core/controller/index.ts`**: Main application controller
+
+### Core Logic
+1. **`src/core/task/ToolExecutor.ts`**: How tools are executed and managed
+2. **`src/core/controller/ui/`**: UI event handlers and state management
+3. **`src/core/api/providers/`**: AI provider implementations
+4. **`src/core/context/ContextManager.ts`**: Context management logic
+
+### Configuration
+1. **`package.json`**: Extension manifest and VS Code integration points
+2. **`tsconfig.json`**: TypeScript configuration with path aliases
+3. **`webview-ui/tailwind.config.mjs`**: UI styling configuration
+
+## 🎯 Learning Pathways
+
+### For Frontend Developers
+1. **Start Here**: `webview-ui/src/App.tsx` and component structure
+2. **Study**: React context patterns in `webview-ui/src/context/`
+3. **Explore**: Component library in `webview-ui/src/components/`
+4. **Practice**: Run Storybook with `cd webview-ui && npm run storybook`
+
+### For Backend/Extension Developers
+1. **Start Here**: `src/extension.ts` and VS Code extension basics
+2. **Study**: Task execution in `src/core/task/`
+3. **Explore**: Tool implementations in `src/core/task/tools/`
+4. **Practice**: Create a simple tool or modify existing ones
+
+### For AI/LLM Integration
+1. **Start Here**: `src/core/api/providers/` for provider patterns
+2. **Study**: Prompt engineering in `src/core/prompts/`
+3. **Explore**: Context management in `src/core/context/`
+4. **Practice**: Add support for a new AI provider
+
+### For MCP Development
+1. **Start Here**: `src/core/controller/mcp/` for MCP integration
+2. **Study**: Documentation at [MCP Specification](https://github.com/modelcontextprotocol)
+3. **Explore**: How tools are dynamically loaded and executed
+4. **Practice**: Create a custom MCP server
+
+## 🚀 Getting Started as a Contributor
+
+### 1. Setup Development Environment
+```bash
+# Clone the repository
+git clone https://github.com/cline/cline.git
+cd cline
+
+# Install dependencies
+npm run install:all
+
+# Start development
+# Terminal 1: Extension development
+npm run watch
+
+# Terminal 2: Webview development (optional)
+cd webview-ui && npm run dev
+```
+
+### 2. Understanding the Development Workflow
+1. **Make Changes**: Modify TypeScript/React code
+2. **Test Locally**: Press F5 in VS Code to launch a new window with your changes
+3. **Run Tests**: `npm run test` before submitting
+4. **Create Changeset**: `npm run changeset` for version tracking
+5. **Submit PR**: Follow the contributing guidelines
+
+### 3. Key Areas for Contribution
+- **New AI Providers**: Add support for additional LLM providers
+- **Tool Enhancements**: Improve existing tools or create new ones
+- **UI/UX Improvements**: Enhance the React frontend
+- **Documentation**: Improve guides and API documentation
+- **Testing**: Add test coverage for new features
+- **MCP Integration**: Create new MCP servers or improve existing ones
+
+## 🔍 Debugging & Development Tips
+
+### VS Code Extension Debugging
+1. Press `F5` to launch the Extension Development Host
+2. Use `console.log()` statements (visible in Debug Console)
+3. Set breakpoints in TypeScript files
+4. Use VS Code's built-in debugging tools
+
+### Webview Debugging
+1. Right-click in the Cline webview → "Open Webview Developer Tools"
+2. Standard browser debugging tools available
+3. React DevTools can be used for component inspection
+
+### Common Development Patterns
+1. **Event-Driven Architecture**: Most interactions are event-based
+2. **Async/Await**: Heavy use of promises for AI and file operations
+3. **Type Safety**: Leverage TypeScript's strict typing
+4. **Error Handling**: Use try-catch blocks and proper error propagation
+
+## 📖 Next Steps
+
+### Deep Dive Topics
+1. **Context Management**: Understanding how Cline maintains context across interactions
+2. **Tool Architecture**: How tools are designed and executed safely
+3. **AI Provider Patterns**: Common patterns for integrating new LLM providers
+4. **Performance Optimization**: How Cline handles large codebases efficiently
+
+### Advanced Features
+1. **Browser Automation**: Computer Use capabilities with Playwright
+2. **MCP Protocol**: Extending Cline's capabilities dynamically
+3. **Checkpoint System**: How workspace snapshots work
+4. **Multi-file Diff**: Complex file change management
+
+### Community Resources
+- **Discord**: Join the `#contributors` channel for real-time help
+- **GitHub Discussions**: Feature requests and architectural discussions
+- **Documentation**: Comprehensive guides at [docs.cline.bot](https://docs.cline.bot)
+- **Code of Conduct**: Review our [Code of Conduct](../CODE_OF_CONDUCT.md)
+
+## 🤝 Contributing Guidelines
+
+Before contributing, make sure to:
+1. Read the [Contributing Guide](../CONTRIBUTING.md)
+2. Check existing issues and feature requests
+3. Follow the coding standards (run `npm run format:fix`)
+4. Add appropriate tests for new features
+5. Update documentation when needed
+
+Welcome to the Cline community! We're excited to see what you'll build with us. 🚀
