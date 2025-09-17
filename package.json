@@ -379,7 +379,8 @@
 		"docs:rename-file": "cd docs && npm run rename",
 		"report-issue": "node scripts/report-issue.js",
 		"client": "npx tsx cline-client.ts",
-		"test-client": "npx tsx test-client.ts"
+		"test-client": "npx tsx test-client.ts",
+		"demo-client": "npx tsx demo-client.ts"
 	},
 	"lint-staged": {
 		"*": [
