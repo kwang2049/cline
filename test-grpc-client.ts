@@ -97,7 +97,9 @@ async function testGrpcClientSetup() {
             
         } catch (error) {
             console.log("   ⚠️  Cline server not reachable")
-            console.log("   💡 Start server with: npm run test:sca-server")
+            console.log("   💡 Complete setup required:")
+            console.log("   1. Build: npm run compile-standalone")
+            console.log("   2. Start server: npm run test:sca-server")
             console.log(`   Error: ${error.message}`)
         }
         
@@ -106,15 +108,17 @@ async function testGrpcClientSetup() {
         if (allTestsPassed) {
             console.log("🎉 All setup tests passed!")
             console.log("\n📋 Next steps:")
-            console.log("1. Start Cline server: npm run test:sca-server")
-            console.log("2. Use gRPC client: npm run grpc-client \"Your request\"")
+            console.log("1. Build standalone: npm run compile-standalone")
+            console.log("2. Start Cline server: npm run test:sca-server")
+            console.log("3. Use gRPC client: npm run grpc-client \"Your request\"")
             
         } else {
             console.log("⚠️  Some setup issues detected")
             console.log("\n🔧 Troubleshooting:")
             console.log("1. Run: npm install")
             console.log("2. Run: npm run protos")  
-            console.log("3. Start server: npm run test:sca-server")
+            console.log("3. Build: npm run compile-standalone")
+            console.log("4. Start server: npm run test:sca-server")
         }
         
     } catch (error) {
@@ -131,18 +135,21 @@ async function testGrpcClientSetup() {
 function showUsageExamples() {
     console.log("\n📚 gRPC Client Usage Examples:")
     console.log("")
-    console.log("1. Start Cline server (required first):")
+    console.log("1. First-time setup (required once):")
+    console.log("   npm run compile-standalone")
+    console.log("")
+    console.log("2. Start Cline server (required each time):")
     console.log("   npm run test:sca-server")
     console.log("")
-    console.log("2. Send task requests:")
+    console.log("3. Send task requests (in new terminal):")
     console.log("   npm run grpc-client \"Write a Python function to sort a list\"")
     console.log("   npm run grpc-client \"Debug this JavaScript error: Cannot read property 'length' of undefined\"")
     console.log("")
-    console.log("3. Manage tasks:")
+    console.log("4. Manage tasks:")
     console.log("   npm run grpc-client --history   # View task history")
     console.log("   npm run grpc-client --cancel    # Cancel current task")
     console.log("")
-    console.log("4. For comparison, try direct API client:")
+    console.log("5. For comparison, try direct API client:")
     console.log("   npm run client \"Simple LLM query\"")
 }
 

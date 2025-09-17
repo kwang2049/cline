@@ -14,6 +14,9 @@ This repository includes multiple client scripts to interact with Cline in diffe
 **Connects to the actual Cline system** - This is the proper way to integrate with Cline.
 
 ```bash
+# STEP 0: Build the standalone version (one-time setup)
+npm run compile-standalone
+
 # STEP 1: Start Cline server (REQUIRED - keep this terminal open)
 npm run test:sca-server
 
@@ -22,6 +25,7 @@ npm run grpc-client "Write a Python function to reverse a string"
 ```
 
 **Important Notes:**
+- 🏗️  **First time setup**: Run `npm run compile-standalone` to build required files
 - ⚠️  **You MUST start the Cline server first** with `npm run test:sca-server`
 - 🖥️  **Keep the server terminal open** - don't close it while using the client
 - 🔄  **Use a separate terminal** for client commands
@@ -66,6 +70,9 @@ npm run client "What is TypeScript?"
 ### gRPC Client (Cline System)
 
 ```bash
+# STEP 0: Build standalone version (first time only)
+npm run compile-standalone
+
 # STEP 1: Start Cline server (keep this terminal open)
 npm run test:sca-server
 
@@ -78,10 +85,10 @@ npm run grpc-client --history  # Get task history
 npm run grpc-client --cancel   # Cancel current task
 ```
 
-**⚠️ Common Issue:** If you get "ECONNREFUSED" error:
-1. Make sure you started the server in step 1
-2. Wait for "Cline gRPC Server is running!" message
-3. Use a different terminal for client commands
+**⚠️ Common Issues:**
+- **"Standalone build not found"**: Run `npm run compile-standalone` first
+- **"ECONNREFUSED" error**: Make sure server is running and shows "Cline gRPC Server is running!"
+- **Server doesn't start**: Check that the build step completed successfully
 
 ### Direct API Client
 

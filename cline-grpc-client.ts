@@ -344,12 +344,13 @@ async function main() {
             // Handle initialization errors more gracefully
             if (initError.message && initError.message.includes("Cline server is not running")) {
                 console.log("\n🔧 Cline server is not running")
-                console.log("   📋 Quick start guide:")
-                console.log("   1. Open a new terminal window")
-                console.log("   2. Run: npm run test:sca-server")
-                console.log("   3. Wait for 'Cline gRPC Server is running!' message")
-                console.log("   4. Keep that terminal open")
-                console.log("   5. In this terminal, retry your command")
+                console.log("   📋 Complete setup guide:")
+                console.log("   1. Build standalone version: npm run compile-standalone")
+                console.log("   2. Open a new terminal window")
+                console.log("   3. Run: npm run test:sca-server")
+                console.log("   4. Wait for 'Cline gRPC Server is running!' message")
+                console.log("   5. Keep that terminal open")
+                console.log("   6. In this terminal, retry your command")
                 process.exit(1)
             } else if (initError.message && initError.message.includes("protobuf")) {
                 console.log("\n🔧 Protobuf files missing")
@@ -358,7 +359,9 @@ async function main() {
             } else {
                 console.log("\n🔧 Failed to initialize Cline client")
                 console.log("   Error:", initError.message)
-                console.log("   Make sure the Cline server is running: npm run test:sca-server")
+                console.log("   Complete setup steps:")
+                console.log("   1. Build: npm run compile-standalone")
+                console.log("   2. Start server: npm run test:sca-server")
                 process.exit(1)
             }
         }
